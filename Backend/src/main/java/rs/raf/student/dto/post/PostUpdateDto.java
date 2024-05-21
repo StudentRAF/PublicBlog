@@ -13,6 +13,8 @@ import rs.raf.student.utils.NotInUse;
 @NotInUse(message = "The class is not currently in use, maybe in the future.")
 public class PostUpdateDto {
 
+    private Long id;
+
     private String title;
 
     private String content;

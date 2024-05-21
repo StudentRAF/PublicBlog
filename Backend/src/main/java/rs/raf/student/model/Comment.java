@@ -1,6 +1,5 @@
 package rs.raf.student.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +14,8 @@ import java.time.LocalDate;
 public class Comment {
 
     private Long id;
+
+    private Long postId;
 
     private Long authorId;
 

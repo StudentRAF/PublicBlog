@@ -16,5 +16,12 @@ public class Utils {
         return createStream(iterator).collect(Collectors.toList());
     }
 
+    public static String encodePassword(String password) {
+        return null;
+    }
+
+    public static String decodePassword(String password) {
+        return null;
+    }
 
 }

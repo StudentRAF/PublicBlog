@@ -19,7 +19,7 @@ public class PostService {
 //    private final PostMapper postMapper;
 
     public List<Post> getAll() {
-        return repository.getAll();
+        return repository.findAll();
     }
 
     public Post getById(Long id) {

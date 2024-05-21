@@ -41,3 +41,8 @@ export type CreateCommentFormData = {
   post_id:   number,
   content:   string,
 }
+
+export type LoginFormData = {
+  username: string,
+  password: string
+}

@@ -1,13 +1,21 @@
-import { ChangeEvent, FormEvent, useContext } from "react";
-import { ApplicationContext } from "@/lib/context.ts";
+import { ChangeEvent, FormEvent, useContext, useState } from "react";
+import { ApplicationContext, ApplicationContextData } from "@/lib/context.ts";
 import { Input } from "@/components/common/Input.tsx";
 import { Button } from "@/components/common/Button.tsx";
-import { HandleChangeEventData, ParameterFormData } from "@/lib/types.ts";
+import { HandleChangeEventData, LoginFormData, ParameterFormData } from "@/lib/types.ts";
 import superagent from "superagent";
 import { Config } from "@/lib/config.ts";
 
+function initFormData() : LoginFormData {
+  return {
+    username: "",
+    password: "",
+  }
+}
+
 const LoginPage = () => {
   const appContext = useContext(ApplicationContext);
+  const [formData, setFormData] = useState<LoginFormData>(initFormData());
 
   const handleChange = (event : ChangeEvent<HandleChangeEventData>) => {
     const parameter : ParameterFormData = event.target;
@@ -15,13 +23,17 @@ const LoginPage = () => {
     if (!parameter.name)
       return;
 
+    setFormData(previous => ({ ...previous, [parameter.name]: parameter.value}));
   }
 
   const submitForm = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     superagent.post(`${Config.API_URL}posts`)
-      // .send(formData)
+              .send(formData)
+        .then(response => {
+          console.log(response);
+        });
       // .then(() => { appContext.setData(prevData => ({...prevData, page: "posts" }))});
   }
 

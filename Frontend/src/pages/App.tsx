@@ -24,7 +24,7 @@ const App = () => {
           {(() => {
             if (appData.user)
               switch(appData.page) {
-                case "login":    return <LoginPage />;
+                case "login":    return <PostsPage />;
                 case "new_post": return <NewPostPage />;
                 case "post":     return <PostPage />;
                 case "posts":    return <PostsPage />;

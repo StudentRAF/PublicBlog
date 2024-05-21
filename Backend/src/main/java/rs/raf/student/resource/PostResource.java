@@ -70,7 +70,7 @@ public class PostResource {
                                     .stream()
                                     .map(comment -> userService.getUserById(comment.getAuthorId()))
                                     .toList();
-        return mapper.toPostGetDto(post, author, commenters);
+        return mapper.mapDto(post, author, commenters);
     }
 
 }
