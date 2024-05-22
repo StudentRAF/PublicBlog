@@ -66,11 +66,12 @@ public class PostResource {
     private PostGetDto toPostGetDto(Post post) {
         User author = userService.getUserById(post.getAuthorId());
 
-        List<User> commenters = post.getComments()
-                                    .stream()
-                                    .map(comment -> userService.getUserById(comment.getAuthorId()))
-                                    .toList();
-        return mapper.mapDto(post, author, commenters);
+//        List<User> commenters = post.getComments()
+//                                    .stream()
+//                                    .map(comment -> userService.getUserById(comment.getAuthorId()))
+//                                    .toList();
+//        return mapper.mapDto(post, author, commenters);
+        return null;
     }
 
 }

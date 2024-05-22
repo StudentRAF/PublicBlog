@@ -4,10 +4,13 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import rs.raf.student.dto.post.PostCreateDto;
 import rs.raf.student.dto.post.PostUpdateDto;
+import rs.raf.student.dto.user.UserUpdateDto;
 import rs.raf.student.mapper.PostMapper;
 import rs.raf.student.model.Post;
+import rs.raf.student.model.User;
 import rs.raf.student.repository.IPostRepository;
 import rs.raf.student.repository.MySQLAbstractRepository;
+import rs.raf.student.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -103,16 +106,6 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
         return Optional.of(post);
     }
 
-    @Override
-    public Optional<Post> update(PostUpdateDto updateDto) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<Post> deleteById(Long id) {
-        return Optional.empty();
-    }
-
     @SneakyThrows
     private ResultSet executeQueryCreatePost(PreparedStatement statement, Post post) {
         statement.setLong  (1, post.getAuthorId());
@@ -121,6 +114,42 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
         statement.setDate  (4, Date.valueOf(post.getDate()));
 
         return statement.executeQuery();
+    }
+
+    @Override
+    public Optional<Post> update(PostUpdateDto updateDto) {
+        try(
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("delete from ");
+            ResultSet resultSet         = executeQueryUpdatePost(statement, updateDto)
+        ) {
+            if (resultSet.next())
+                return Optional.of(new Post(resultSet.getLong("id"),
+                                            resultSet.getLong("author_id"),
+                                            resultSet.getString("title"),
+                                            resultSet.getString("content"),
+                                            resultSet.getDate("date").toLocalDate()));
+                Optional.empty();
+        }
+        catch (Exception exception) {
+            exception.printStackTrace(System.err);
+        }
+
+        return Optional.empty();
+    }
+
+    @SneakyThrows
+    private ResultSet executeQueryUpdatePost(PreparedStatement statement, PostUpdateDto updateDto) {
+        statement.setString(1, updateDto.getTitle());
+        statement.setString(2, updateDto.getContent());
+        statement.setLong  (3, updateDto.getId());
+
+        return statement.executeQuery();
+    }
+
+    @Override
+    public Optional<Post> deleteById(Long id) {
+        return Optional.empty();
     }
 
 }

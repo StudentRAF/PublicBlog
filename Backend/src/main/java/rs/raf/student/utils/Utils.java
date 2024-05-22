@@ -1,5 +1,8 @@
 package rs.raf.student.utils;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,11 +20,7 @@ public class Utils {
     }
 
     public static String encodePassword(String password) {
-        return null;
-    }
-
-    public static String decodePassword(String password) {
-        return null;
+        return new String(Base64.encodeBase64(DigestUtils.sha256(password)));
     }
 
 }

@@ -8,6 +8,7 @@ import rs.raf.student.mapper.UserMapper;
 import rs.raf.student.model.User;
 import rs.raf.student.repository.IUserRepository;
 import rs.raf.student.repository.MySQLAbstractRepository;
+import rs.raf.student.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -105,6 +106,52 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
         return Optional.of(user);
     }
 
+    @SneakyThrows
+    private ResultSet executeQueryCreateUser(PreparedStatement statement, User user) {
+        statement.setString(1, user.getFirstName());
+        statement.setString(2, user.getLastName());
+        statement.setString(3, user.getUsername());
+        statement.setString(4, Utils.encodePassword(user.getPassword()));
+
+        return statement.executeQuery();
+    }
+
+    @Override
+    public Optional<User> update(UserUpdateDto updateDto) {
+        try(
+                Connection connection       = createConnection();
+                PreparedStatement statement = connection.prepareStatement("""
+                                                                          update users
+                                                                          set first_name = ?, last_name = ?, username = ?, password = ?
+                                                                          where id = ?
+                                                                          """);
+                ResultSet resultSet         = executeQueryUpdateUser(statement, updateDto)
+        ) {
+            if (resultSet.next())
+                return Optional.of(new User(resultSet.getLong("id"),
+                                            resultSet.getString("first_name"),
+                                            resultSet.getString("last_name"),
+                                            resultSet.getString("username"),
+                                            resultSet.getString("password")));
+        }
+        catch (Exception exception) {
+            exception.printStackTrace(System.err);
+        }
+
+        return Optional.empty();
+    }
+
+    @SneakyThrows
+    private ResultSet executeQueryUpdateUser(PreparedStatement statement, UserUpdateDto updateDto) {
+        statement.setString(1, updateDto.getFirstName());
+        statement.setString(2, updateDto.getLastName());
+        statement.setString(3, updateDto.getUsername());
+        statement.setString(4, Utils.encodePassword(updateDto.getPassword()));
+        statement.setLong  (5, updateDto.getId());
+
+        return statement.executeQuery();
+    }
+
     @Override
     public Optional<User> deleteById(Long id) {
         try(
@@ -122,23 +169,6 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
         catch (Exception exception) {
             exception.printStackTrace(System.err);
         }
-
-        return Optional.empty();
-    }
-
-    @SneakyThrows
-    private ResultSet executeQueryCreateUser(PreparedStatement statement, User user) {
-        statement.setString(1, user.getFirstName());
-        statement.setString(2, user.getLastName());
-        statement.setString(3, user.getUsername());
-        statement.setString(4, user.getPassword());
-
-        return statement.executeQuery();
-    }
-
-    @Override
-    public Optional<User> update(UserUpdateDto updateDto) {
-
 
         return Optional.empty();
     }
