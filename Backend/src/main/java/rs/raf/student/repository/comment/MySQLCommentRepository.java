@@ -2,6 +2,7 @@ package rs.raf.student.repository.comment;
 
 import lombok.SneakyThrows;
 import rs.raf.student.dto.comment.CommentCreateDto;
+import rs.raf.student.dto.comment.CommentUpdateDto;
 import rs.raf.student.model.Comment;
 import rs.raf.student.repository.ICommentRepository;
 import rs.raf.student.repository.MySQLAbstractRepository;
@@ -28,6 +29,7 @@ public class MySQLCommentRepository extends MySQLAbstractRepository implements I
         ) {
             if (resultSet.next())
                 return Optional.of(new Comment(resultSet.getLong("id"),
+                                               resultSet.getLong("post_id"),
                                                resultSet.getLong("author_id"),
                                                resultSet.getString("content"),
                                                resultSet.getDate("date").toLocalDate()));
@@ -74,27 +76,37 @@ public class MySQLCommentRepository extends MySQLAbstractRepository implements I
             exception.printStackTrace(System.err);
         }
 
-        try(
-                Connection connection       = createConnection();
-                PreparedStatement statement = connection.prepareStatement("""
-                                                                          insert into post_comments(post_id, comment_id)
-                                                                          values (?, ?)
-                                                                          """,
-                                                                          generatedColumns);
-                ResultSet resultSet         = executeQueryCreatePost(statement, comment)
-        ) {
-            if (!resultSet.next()) {
-                return Optional.empty();
-            }
-                return Optional.empty();
-
-            comment.setId(resultSet.getLong("id"));
-        }
-        catch (Exception exception) {
-            exception.printStackTrace(System.err);
-        }
+//        try(
+//                Connection connection       = createConnection();
+//                PreparedStatement statement = connection.prepareStatement("""
+//                                                                          insert into post_comments(post_id, comment_id)
+//                                                                          values (?, ?)
+//                                                                          """,
+//                                                                          generatedColumns);
+//                ResultSet resultSet         = executeQueryCreatePost(statement, comment)
+//        ) {
+//            if (!resultSet.next()) {
+//                return Optional.empty();
+//            }
+//                return Optional.empty();
+//
+//            comment.setId(resultSet.getLong("id"));
+//        }
+//        catch (Exception exception) {
+//            exception.printStackTrace(System.err);
+//        }
 
         return Optional.of(comment);
+    }
+
+    @Override
+    public Optional<Comment> update(CommentUpdateDto updateDto) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Comment> deleteById(Long id) {
+        return Optional.empty();
     }
 
     @SneakyThrows

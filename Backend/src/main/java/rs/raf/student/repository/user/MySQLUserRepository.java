@@ -1,8 +1,10 @@
 package rs.raf.student.repository.user;
 
+import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import rs.raf.student.dto.user.UserCreateDto;
 import rs.raf.student.dto.user.UserUpdateDto;
+import rs.raf.student.mapper.UserMapper;
 import rs.raf.student.model.User;
 import rs.raf.student.repository.IUserRepository;
 import rs.raf.student.repository.MySQLAbstractRepository;
@@ -14,16 +16,19 @@ import java.util.Optional;
 
 public class MySQLUserRepository extends MySQLAbstractRepository implements IUserRepository {
 
+    @Inject
+    private UserMapper userMapper;
+
     public MySQLUserRepository() {
-        create(new UserCreateDto("FN", "LN", "Admin", "admin"));
+        initialUsers.forEach(this::create);
     }
 
     @Override
     public Optional<User> findById(Long id) {
         try(
-                Connection connection       = createConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from users where id = ?");
-                ResultSet resultSet         = executeQueryById(statement, id)
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("select * from users where id = ?");
+            ResultSet resultSet         = executeQueryById(statement, id)
         ) {
             if (resultSet.next())
                 return Optional.of(new User(resultSet.getLong("id"),
@@ -49,9 +54,9 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
     @Override
     public Optional<User> findByUsername(String username) {
         try(
-                Connection connection       = createConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from users where username = ?");
-                ResultSet resultSet         = executeQueryByString(statement, username)
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("select * from users where username = ?");
+            ResultSet resultSet         = executeQueryByString(statement, username)
         ) {
             if (resultSet.next())
                 return Optional.of(new User(resultSet.getLong("id"),
@@ -77,21 +82,16 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
     public Optional<User> create(UserCreateDto createDto) {
         User user = new User();
 
-        user.setFirstName(createDto.getFirstName());
-        user.setLastName(createDto.getLastName());
-        user.setUsername(createDto.getUsername());
-        user.setPassword(createDto.getPassword());
-
         String[] generatedColumns = { "id" };
 
         try(
-                Connection connection       = createConnection();
-                PreparedStatement statement = connection.prepareStatement("""
-                                                                          insert into users(first_name, last_name, username, password)
-                                                                          values (?, ?, ?, ?)
-                                                                          """,
-                                                                          generatedColumns);
-                ResultSet resultSet         = executeQueryCreateUser(statement, user)
+            Connection        connection = createConnection();
+            PreparedStatement statement  = connection.prepareStatement("""
+                                                                      insert into users(first_name, last_name, username, password)
+                                                                      values (?, ?, ?, ?)
+                                                                      """,
+                                                                      generatedColumns);
+            ResultSet resultSet          = executeQueryCreateUser(statement, userMapper.map(user, createDto))
         ) {
             if (!resultSet.next())
                 return Optional.empty();
@@ -107,6 +107,22 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
 
     @Override
     public Optional<User> deleteById(Long id) {
+        try(
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("delete from users where id = ?");
+            ResultSet resultSet         = executeQueryById(statement, id)
+        ) {
+            if (resultSet.next())
+                return Optional.of(new User(resultSet.getLong("id"),
+                                            resultSet.getString("first_name"),
+                                            resultSet.getString("last_name"),
+                                            resultSet.getString("username"),
+                                            resultSet.getString("password")));
+        }
+        catch (Exception exception) {
+            exception.printStackTrace(System.err);
+        }
+
         return Optional.empty();
     }
 
@@ -126,4 +142,5 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
 
         return Optional.empty();
     }
+
 }

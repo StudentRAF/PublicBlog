@@ -28,7 +28,8 @@ public class PostService {
     }
 
     public Post addPost(PostCreateDto createDto) {
-        return repository.create(createDto);
+        return repository.create(createDto)
+                         .orElse(null);
     }
 
     public Post addComment(CommentCreateDto commentCreateDto) {
@@ -39,7 +40,7 @@ public class PostService {
          if (post == null)
              return null;
 
-         post.addComment(commentRepository.create(commentCreateDto));
+//         post.addComment(commentRepository.create(commentCreateDto));
 
          return post;
     }

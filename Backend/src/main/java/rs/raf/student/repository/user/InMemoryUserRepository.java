@@ -20,7 +20,7 @@ public class InMemoryUserRepository implements IUserRepository {
     private UserMapper userMapper;
 
     public InMemoryUserRepository() {
-        users.add(new User(1L, "Name", "LastName", "Username", "password"));
+        initialUsers.forEach(this::create);
     }
 
     @Override
