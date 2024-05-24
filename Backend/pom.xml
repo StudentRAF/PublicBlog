@@ -25,6 +25,69 @@
             <artifactId>lombok</artifactId>
             <version>1.18.32</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.core</groupId>-->
+<!--            <artifactId>jersey-server</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.core</groupId>-->
+<!--            <artifactId>jersey-client</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.bundles</groupId>-->
+<!--            <artifactId>jaxrs-ri</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.containers</groupId>-->
+<!--            <artifactId>jersey-container-grizzly2-servlet</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.ext</groupId>-->
+<!--            <artifactId>jersey-mvc-freemarker</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.security</groupId>-->
+<!--            <artifactId>oauth1-client</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.security</groupId>-->
+<!--            <artifactId>oauth2-client</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.media</groupId>-->
+<!--            <artifactId>jersey-media-sse</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.test-framework</groupId>-->
+<!--            <artifactId>jersey-test-framework-core</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.test-framework.providers</groupId>-->
+<!--            <artifactId>jersey-test-framework-provider-grizzly2</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.connectors</groupId>-->
+<!--            <artifactId>jersey-apache-connector</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.glassfish.jersey.media</groupId>-->
+<!--            <artifactId>jersey-media-multipart</artifactId>-->
+<!--            <version>${jersey.version}</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -75,6 +138,11 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>

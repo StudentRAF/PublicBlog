@@ -12,7 +12,9 @@ public class Application extends ResourceConfig {
 
         register(new InjectionBinder());
 
+        packages("rs.raf.student");
         packages("rs.raf.student.resource");
+        packages("rs.raf.student.filter");
     }
 
 }

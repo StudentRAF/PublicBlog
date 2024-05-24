@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Page, UserData } from "@/lib/types.ts";
+import { Page, UserData, UserToken } from "@/lib/types.ts";
 
 export type ApplicationData = {
   page: Page,
   user?: UserData,
+  authorization?: UserToken,
   path?: string | number,
 }
 
@@ -13,7 +14,7 @@ export type ApplicationContextData = {
 }
 
 export const defaultAppData : ApplicationData = {
-  page: "login"
+  page: "posts"
 }
 
 export const ApplicationContext = React.createContext<ApplicationContextData>({

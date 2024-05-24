@@ -3,6 +3,7 @@ package rs.raf.student.filter;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import rs.raf.student.service.UserService;
@@ -10,14 +11,15 @@ import rs.raf.student.service.UserService;
 import java.util.List;
 
 @Provider
+@PreMatching
 public class AuthenticationFilter implements ContainerRequestFilter {
+
+    private final List<String> nonAuthenticationPaths = List.of(
+        "users"
+    );
 
     @Inject
     private UserService userService;
-
-    private final List<String> nonAuthenticationPaths = List.of(
-            "login"
-    );
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
@@ -30,9 +32,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     private boolean needsAuthentication(ContainerRequestContext requestContext) {
         return nonAuthenticationPaths.stream()
-                                     .anyMatch(element -> requestContext.getUriInfo()
-                                                                        .getPath()
-                                                                        .startsWith(element));
+                                     .noneMatch(element -> requestContext.getUriInfo()
+                                                                         .getPath()
+                                                                         .contains(element));
     }
 
 }

@@ -1,5 +1,6 @@
 package rs.raf.student.repository.user;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import rs.raf.student.dto.user.UserCreateDto;
@@ -13,58 +14,63 @@ import rs.raf.student.utils.Utils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class MySQLUserRepository extends MySQLAbstractRepository implements IUserRepository {
 
     @Inject
-    private UserMapper userMapper;
+    private UserMapper mapper;
 
-    public MySQLUserRepository() {
-        initialUsers.forEach(this::create);
+    @PostConstruct
+    private void initialise() {
+        if (findById(1L).isEmpty())
+            initialUsers.forEach(this::create);
     }
 
     @Override
     public Optional<User> findById(Long id) {
         try(
             Connection connection       = createConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from users where id = ?");
-            ResultSet resultSet         = executeQueryById(statement, id)
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      select * from users
+                                                                      where id = ?
+                                                                      """);
+            ResultSet resultSet         = executeById(statement, id)
         ) {
             if (resultSet.next())
                 return Optional.of(new User(resultSet.getLong("id"),
                                             resultSet.getString("first_name"),
                                             resultSet.getString("last_name"),
                                             resultSet.getString("username"),
-                                            resultSet.getString("password")));
+                                            resultSet.getString("password"),
+                                            resultSet.getBoolean("active")));
         }
         catch (Exception exception) {
             exception.printStackTrace(System.err);
         }
 
         return Optional.empty();
-    }
-
-    @SneakyThrows
-    private ResultSet executeQueryById(PreparedStatement statement, Long id) {
-        statement.setLong(1, id);
-
-        return statement.executeQuery();
     }
 
     @Override
     public Optional<User> findByUsername(String username) {
         try(
             Connection connection       = createConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from users where username = ?");
-            ResultSet resultSet         = executeQueryByString(statement, username)
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      select * from users
+                                                                      where username = ?
+                                                                      """);
+            ResultSet resultSet         = executeByString(statement, username)
         ) {
             if (resultSet.next())
                 return Optional.of(new User(resultSet.getLong("id"),
                                             resultSet.getString("first_name"),
                                             resultSet.getString("last_name"),
                                             resultSet.getString("username"),
-                                            resultSet.getString("password")));
+                                            resultSet.getString("password"),
+                                            resultSet.getBoolean("active")));
         }
         catch (Exception exception) {
             exception.printStackTrace(System.err);
@@ -73,13 +79,36 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
         return Optional.empty();
     }
 
-    @SneakyThrows
-    private ResultSet executeQueryByString(PreparedStatement statement, String string) {
-        statement.setString(1, string);
+    @Override
+    public List<User> findAllByPostId(Long postId) {
+        List<User> users = new ArrayList<>();
 
-        return statement.executeQuery();
+        try(
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      select users.id, first_name, last_name, username, password, active
+                                                                      from comments
+                                                                      join users on comments.author_id = users.id
+                                                                      where post_id = ?
+                                                                      """);
+            ResultSet resultSet         = executeById(statement, postId)
+        ) {
+            while (resultSet.next())
+                users.add(new User(resultSet.getLong("users.id"),
+                                   resultSet.getString("first_name"),
+                                   resultSet.getString("last_name"),
+                                   resultSet.getString("username"),
+                                   resultSet.getString("password"),
+                                   resultSet.getBoolean("active")));
+        }
+        catch (Exception exception) {
+            exception.printStackTrace(System.err);
+        }
+
+        return users;
     }
 
+    @Override
     public Optional<User> create(UserCreateDto createDto) {
         User user = new User();
 
@@ -88,32 +117,20 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
         try(
             Connection        connection = createConnection();
             PreparedStatement statement  = connection.prepareStatement("""
-                                                                      insert into users(first_name, last_name, username, password)
-                                                                      values (?, ?, ?, ?)
-                                                                      """,
+                                                                       insert into users(first_name, last_name, username, password)
+                                                                       values (?, ?, ?, ?)
+                                                                       """,
                                                                       generatedColumns);
-            ResultSet resultSet          = executeQueryCreateUser(statement, userMapper.map(user, createDto))
+            ResultSet resultSet          = executeCreateUser(statement, mapper.map(user, createDto))
         ) {
-            if (!resultSet.next())
-                return Optional.empty();
-
-            user.setId(resultSet.getLong("id"));
+            if (resultSet.next())
+                user.setId(resultSet.getLong(1));
         }
         catch (Exception exception) {
             exception.printStackTrace(System.err);
         }
 
         return Optional.of(user);
-    }
-
-    @SneakyThrows
-    private ResultSet executeQueryCreateUser(PreparedStatement statement, User user) {
-        statement.setString(1, user.getFirstName());
-        statement.setString(2, user.getLastName());
-        statement.setString(3, user.getUsername());
-        statement.setString(4, Utils.encodePassword(user.getPassword()));
-
-        return statement.executeQuery();
     }
 
     @Override
@@ -124,15 +141,28 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
                                                                           update users
                                                                           set first_name = ?, last_name = ?, username = ?, password = ?
                                                                           where id = ?
-                                                                          """);
-                ResultSet resultSet         = executeQueryUpdateUser(statement, updateDto)
+                                                                          """)
         ) {
-            if (resultSet.next())
-                return Optional.of(new User(resultSet.getLong("id"),
-                                            resultSet.getString("first_name"),
-                                            resultSet.getString("last_name"),
-                                            resultSet.getString("username"),
-                                            resultSet.getString("password")));
+            executeUpdateUser(statement, updateDto);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace(System.err);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<User> deleteById(Long id) {
+        try(
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      update users
+                                                                      set active = false
+                                                                      where id = ?
+                                                                      """)
+        ) {
+            executeDeleteUser(statement, id);
         }
         catch (Exception exception) {
             exception.printStackTrace(System.err);
@@ -142,35 +172,47 @@ public class MySQLUserRepository extends MySQLAbstractRepository implements IUse
     }
 
     @SneakyThrows
-    private ResultSet executeQueryUpdateUser(PreparedStatement statement, UserUpdateDto updateDto) {
+    private ResultSet executeById(PreparedStatement statement, Long id) {
+        statement.setLong(1, id);
+
+        return statement.executeQuery();
+    }
+
+    @SneakyThrows
+    private ResultSet executeByString(PreparedStatement statement, String string) {
+        statement.setString(1, string);
+
+        return statement.executeQuery();
+    }
+
+    @SneakyThrows
+    private ResultSet executeCreateUser(PreparedStatement statement, User user) {
+        statement.setString(1, user.getFirstName());
+        statement.setString(2, user.getLastName());
+        statement.setString(3, user.getUsername());
+        statement.setString(4, user.getPassword());
+
+        statement.executeUpdate();
+
+        return statement.getGeneratedKeys();
+    }
+
+    @SneakyThrows
+    private void executeUpdateUser(PreparedStatement statement, UserUpdateDto updateDto) {
         statement.setString(1, updateDto.getFirstName());
         statement.setString(2, updateDto.getLastName());
         statement.setString(3, updateDto.getUsername());
         statement.setString(4, Utils.encodePassword(updateDto.getPassword()));
         statement.setLong  (5, updateDto.getId());
 
-        return statement.executeQuery();
+        statement.executeUpdate();
     }
 
-    @Override
-    public Optional<User> deleteById(Long id) {
-        try(
-            Connection connection       = createConnection();
-            PreparedStatement statement = connection.prepareStatement("delete from users where id = ?");
-            ResultSet resultSet         = executeQueryById(statement, id)
-        ) {
-            if (resultSet.next())
-                return Optional.of(new User(resultSet.getLong("id"),
-                                            resultSet.getString("first_name"),
-                                            resultSet.getString("last_name"),
-                                            resultSet.getString("username"),
-                                            resultSet.getString("password")));
-        }
-        catch (Exception exception) {
-            exception.printStackTrace(System.err);
-        }
+    @SneakyThrows
+    private void executeDeleteUser(PreparedStatement statement, Long id) {
+        statement.setLong(1, id);
 
-        return Optional.empty();
+        statement.executeUpdate();
     }
 
 }

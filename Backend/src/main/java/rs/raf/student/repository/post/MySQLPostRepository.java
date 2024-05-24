@@ -4,13 +4,10 @@ import jakarta.inject.Inject;
 import lombok.SneakyThrows;
 import rs.raf.student.dto.post.PostCreateDto;
 import rs.raf.student.dto.post.PostUpdateDto;
-import rs.raf.student.dto.user.UserUpdateDto;
 import rs.raf.student.mapper.PostMapper;
 import rs.raf.student.model.Post;
-import rs.raf.student.model.User;
 import rs.raf.student.repository.IPostRepository;
 import rs.raf.student.repository.MySQLAbstractRepository;
-import rs.raf.student.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -25,17 +22,19 @@ import java.util.Optional;
 public class MySQLPostRepository extends MySQLAbstractRepository implements IPostRepository {
 
     @Inject
-    private PostMapper postMapper;
+    private PostMapper mapper;
 
     @Override
-    @SneakyThrows
     public List<Post> findAll() {
         List<Post> posts = new ArrayList<>();
 
         try(
             Connection connection = createConnection();
             Statement  statement  = connection.createStatement();
-            ResultSet  resultSet  = statement.executeQuery("select * from posts")
+            ResultSet  resultSet  = statement.executeQuery("""
+                                                           select *
+                                                           from posts
+                                                           """)
         ) {
             while (resultSet.next())
                 posts.add(new Post(resultSet.getLong("id"),
@@ -55,8 +54,12 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
     public Optional<Post> findById(Long id) {
         try(
             Connection connection       = createConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from posts where id = ?");
-            ResultSet resultSet         = executeQueryById(statement, id)
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      select *
+                                                                      from posts
+                                                                      where id = ?
+                                                                      """);
+            ResultSet resultSet         = executeById(statement, id)
         ) {
             if (resultSet.next())
                 return Optional.of(new Post(resultSet.getLong("id"),
@@ -70,13 +73,6 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
         }
 
         return Optional.empty();
-    }
-
-    @SneakyThrows
-    private ResultSet executeQueryById(PreparedStatement statement, Long id) {
-        statement.setLong(1, id);
-
-        return statement.executeQuery();
     }
 
     @Override
@@ -92,12 +88,10 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
                                                                       values (?, ?, ?, ?)
                                                                       """,
                                                                       generatedColumns);
-            ResultSet resultSet         = executeQueryCreatePost(statement, postMapper.map(post, createDto))
+            ResultSet resultSet         = executeCreatePost(statement, mapper.map(post, createDto))
         ) {
-            if (!resultSet.next())
-                return Optional.empty();
-
-            post.setId(resultSet.getLong("id"));
+            if (resultSet.next())
+                post.setId(resultSet.getLong(1));
         }
         catch (Exception exception) {
             exception.printStackTrace(System.err);
@@ -106,22 +100,34 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
         return Optional.of(post);
     }
 
-    @SneakyThrows
-    private ResultSet executeQueryCreatePost(PreparedStatement statement, Post post) {
-        statement.setLong  (1, post.getAuthorId());
-        statement.setString(2, post.getTitle());
-        statement.setString(3, post.getContent());
-        statement.setDate  (4, Date.valueOf(post.getDate()));
-
-        return statement.executeQuery();
-    }
-
     @Override
     public Optional<Post> update(PostUpdateDto updateDto) {
         try(
             Connection connection       = createConnection();
-            PreparedStatement statement = connection.prepareStatement("delete from ");
-            ResultSet resultSet         = executeQueryUpdatePost(statement, updateDto)
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      update posts
+                                                                      set title = ?, content = ?, date = ?
+                                                                      where id = ?
+                                                                      """)
+        ) {
+            executeUpdatePost(statement, updateDto);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace(System.err);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Post> deleteById(Long id) {
+        try(
+            Connection connection       = createConnection();
+            PreparedStatement statement = connection.prepareStatement("""
+                                                                      delete from posts
+                                                                      where id = ?
+                                                                      """);
+            ResultSet resultSet         = executeById(statement, id)
         ) {
             if (resultSet.next())
                 return Optional.of(new Post(resultSet.getLong("id"),
@@ -129,7 +135,6 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
                                             resultSet.getString("title"),
                                             resultSet.getString("content"),
                                             resultSet.getDate("date").toLocalDate()));
-                Optional.empty();
         }
         catch (Exception exception) {
             exception.printStackTrace(System.err);
@@ -139,17 +144,32 @@ public class MySQLPostRepository extends MySQLAbstractRepository implements IPos
     }
 
     @SneakyThrows
-    private ResultSet executeQueryUpdatePost(PreparedStatement statement, PostUpdateDto updateDto) {
-        statement.setString(1, updateDto.getTitle());
-        statement.setString(2, updateDto.getContent());
-        statement.setLong  (3, updateDto.getId());
+    private ResultSet executeById(PreparedStatement statement, Long id) {
+        statement.setLong(1, id);
 
         return statement.executeQuery();
     }
 
-    @Override
-    public Optional<Post> deleteById(Long id) {
-        return Optional.empty();
+    @SneakyThrows
+    private ResultSet executeCreatePost(PreparedStatement statement, Post post) {
+        statement.setLong  (1, post.getAuthorId());
+        statement.setString(2, post.getTitle());
+        statement.setString(3, post.getContent());
+        statement.setDate  (4, Date.valueOf(post.getDate()));
+
+        statement.executeUpdate();
+
+        return statement.getGeneratedKeys();
+    }
+
+    @SneakyThrows
+    private void executeUpdatePost(PreparedStatement statement, PostUpdateDto updateDto) {
+        statement.setString(1, updateDto.getTitle());
+        statement.setString(2, updateDto.getContent());
+        statement.setDate  (3, Date.valueOf(LocalDate.now()));
+        statement.setLong  (4, updateDto.getId());
+
+        statement.executeQuery();
     }
 
 }

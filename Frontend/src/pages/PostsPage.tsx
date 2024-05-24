@@ -12,6 +12,7 @@ const PostsPage = () => {
 
   useEffect(() => {
     superagent.get(`${Config.API_URL}posts`)
+              .set("Authorization", `Bearer ${appContext.data.authorization?.token}`)
               .then(response => setPosts(response.body));
   }, [appContext.data]);
   

@@ -25,6 +25,10 @@ export type   UserData = {
   username:   string,
 }
 
+export type UserToken = {
+  token?: string
+}
+
 export type CreatePostFormData = {
   author_id: number,
   title:     string,

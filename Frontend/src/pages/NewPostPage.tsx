@@ -35,6 +35,7 @@ const NewPostPage = () => {
     event.preventDefault();
 
     superagent.post(`${Config.API_URL}posts`)
+              .set("Authorization", `Bearer ${appContext.data.authorization?.token}`)
               .send(formData)
               .then(() => { appContext.setData(prevData => ({...prevData, page: "posts" }))});
   }
@@ -50,7 +51,7 @@ const NewPostPage = () => {
             <label className="ml-2">
               Author
             </label>
-            <Input placeholder="author" onChange={handleChange} />
+            <Input placeholder="author" value={`${appContext.data.user?.first_name} ${appContext.data.user?.last_name}`} disabled />
           </div>
 
           <div className="flex flex-col gap-2">

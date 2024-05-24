@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Deploy" type="CompoundRunConfigurationType">
+    <toRun name="Site Cleanup" type="MavenRunConfiguration" />
+    <toRun name="Site Deployment" type="MavenRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

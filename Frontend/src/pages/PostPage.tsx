@@ -30,6 +30,7 @@ const PostPage = () => {
 
   useEffect(() => {
     superagent.get(`${Config.API_URL}posts/${appContext.data.path}`)
+              .set("Authorization", `Bearer ${appContext.data.authorization?.token}`)
               .then(response => setPost(response.body));
   }, [appContext.data]);
   
@@ -49,6 +50,7 @@ const PostPage = () => {
     event.preventDefault();
 
     superagent.put(`${Config.API_URL}posts`)
+              .set("Authorization", `Bearer ${appContext.data.authorization?.token}`)
               .send(formData)
               .then(() => {
                 setFormData(prevData => ({...prevData, content: ""}));
@@ -98,7 +100,7 @@ const PostPage = () => {
             <label className="ml-2">
               Username
             </label>
-            <Input placeholder="username" value="Username" onChange={handleChange} />
+            <Input placeholder="username" value={`${appContext.data.user?.first_name} ${appContext.data.user?.last_name}`} disabled />
           </div>
 
           <div className="flex flex-col w-full gap-2">

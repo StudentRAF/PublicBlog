@@ -1,6 +1,7 @@
 package rs.raf.student.repository.post;
 
 import jakarta.inject.Inject;
+import lombok.Getter;
 import rs.raf.student.dto.post.PostCreateDto;
 import rs.raf.student.dto.post.PostUpdateDto;
 import rs.raf.student.mapper.PostMapper;
@@ -12,12 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Getter
 public class InMemoryPostRepository implements IPostRepository {
 
     private final List<Post> posts = new CopyOnWriteArrayList<>();
 
     @Inject
-    private PostMapper postMapper;
+    private PostMapper mapper;
 
     @Override
     public List<Post> findAll() {
@@ -40,14 +42,14 @@ public class InMemoryPostRepository implements IPostRepository {
             posts.add(post);
         }
 
-        return Optional.of(postMapper.map(post, createDto));
+        return Optional.of(mapper.map(post, createDto));
     }
 
     @Override
     public Optional<Post> update(PostUpdateDto updateDto) {
         return Utils.createStream(posts.iterator())
                     .filter((item -> item.getId().equals(updateDto.getId())))
-                    .map(item -> postMapper.map(item, updateDto))
+                    .map(item -> mapper.map(item, updateDto))
                     .findFirst();
     }
 

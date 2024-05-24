@@ -1,8 +1,8 @@
 import { ChangeEvent, FormEvent, useContext, useState } from "react";
-import { ApplicationContext, ApplicationContextData } from "@/lib/context.ts";
+import { ApplicationContext } from "@/lib/context.ts";
 import { Input } from "@/components/common/Input.tsx";
 import { Button } from "@/components/common/Button.tsx";
-import { HandleChangeEventData, LoginFormData, ParameterFormData } from "@/lib/types.ts";
+import { HandleChangeEventData, LoginFormData, ParameterFormData, UserData, UserToken } from "@/lib/types.ts";
 import superagent from "superagent";
 import { Config } from "@/lib/config.ts";
 
@@ -29,12 +29,16 @@ const LoginPage = () => {
   const submitForm = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    superagent.post(`${Config.API_URL}posts`)
-              .send(formData)
-        .then(response => {
-          console.log(response);
-        });
-      // .then(() => { appContext.setData(prevData => ({...prevData, page: "posts" }))});
+    superagent.post(`${Config.API_URL}users`)
+      .send(formData)
+      .then(response => {
+        const user : UserData = response.body;
+        const authorization : UserToken = {
+          token: response.headers["authorization"],
+        }
+
+        appContext.setData(prevData => ({...prevData, authorization: authorization, user: user, page: "posts"}));
+      });
   }
 
   return (
@@ -59,7 +63,7 @@ const LoginPage = () => {
           </div>
         </div>
         <Button className="w-fit" type="submit">
-          Save Post
+          Login
         </Button>
       </form>
     </div>
